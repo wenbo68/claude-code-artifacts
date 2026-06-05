@@ -1,7 +1,7 @@
 ---
 name: create-overview
 description: Generate (or refresh) a codebase overview — an annotated directory map (FILESYSTEM-OVERVIEW.md) and an annotated, categorized dependency list (DEPENDENCY-OVERVIEW.md). The dependency manifest itself is never modified.
-argument-hint: "[path-to-repo] [--prune | --exclude a,b]  (default: current repo root, exclude nothing)"
+argument-hint: "[path-to-repo] [--prune | --exclude a,b | --exclude-file]  (default: current repo root, exclude nothing)"
 ---
 
 # /create-overview
