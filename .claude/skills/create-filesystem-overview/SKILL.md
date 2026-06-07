@@ -2,7 +2,7 @@
 name: create-filesystem-overview
 description: This skill writes FILESYSTEM-OVERVIEW.md to explain the structure of a codebase. It owns and reconciles FILESYSTEM-OVERVIEW.md. Use this skill when onboarding to an unfamiliar codebase or as a sub-step of the `/create-overview` command.
 user-invocable: true
-argument-hint: "[path-to-repo] [--prune | --exclude name1,name2,…]"
+argument-hint: "[path-to-repo] [--prune | --exclude name1,name2,… | --exclude-files]"
 ---
 
 # create-filesystem-overview
@@ -76,12 +76,12 @@ If no flag is given, exclude nothing.
    granularity — don't read everything. For hidden folders a one-line "what it's for" is enough.
 6. Draft a one-paragraph "what this project is" from `README`/`CLAUDE.md` if present.
 
-## Output — write `FILESYSTEM-OVERVIEW.md`s at the repo root
+## Output — write `FILESYSTEM-OVERVIEW.md` at the repo root
 
 `````markdown
 # Filesystem Overview
 
-- Date: <YYYY-MM-DD>
+- Date: <YYYY/MM/DD>
 - Summary: <one-paragraph what-this-project-is, drawn from README/CLAUDE.md if present>
 
 ## Structure

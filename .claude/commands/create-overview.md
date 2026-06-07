@@ -1,7 +1,7 @@
 ---
 name: create-overview
 description: Generate (or refresh) a codebase overview — an annotated directory map (FILESYSTEM-OVERVIEW.md) and an annotated, categorized dependency list (DEPENDENCY-OVERVIEW.md). The dependency manifest itself is never modified.
-argument-hint: "[path-to-repo] [--prune | --exclude a,b | --exclude-file]  (default: current repo root, exclude nothing)"
+argument-hint: "[path-to-repo] [--prune | --exclude a,b | --exclude-files]  (default: current repo root, exclude nothing)"
 ---
 
 # /create-overview
@@ -24,9 +24,9 @@ Agent(
 ```
 
 - `<TARGET>` = the path in `$ARGUMENTS` if provided, otherwise the current repo root.
-- `<EXCL_NOTE>` = forward any `--prune` or `--exclude name1,name2` flags from `$ARGUMENTS` to the
-  filesystem skill verbatim. They control which folders the directory map leaves out (default: leave
-  out nothing); they don't affect the dependency overview.
+- `<EXCL_NOTE>` = forward any `--prune`, `--exclude name1,name2`, or `--exclude-files` flags from
+  `$ARGUMENTS` to the filesystem skill verbatim. They control what the directory map leaves out
+  (default: leave out nothing); they don't affect the dependency overview.
 - `<FORCE_NOTE>` = if the user clearly asked to force/refresh/overwrite, add
   "The user wants an update-in-place refresh — do not ask, just regenerate and preserve hand edits."
   Otherwise leave empty so the agent asks before clobbering an existing file.
