@@ -10,7 +10,7 @@ Rename a Claude Code **agent**, **command**, or **skill** safely. A rename is tw
 work and this skill keeps them separate:
 
 - **Load-bearing / structural** (the file move, `name:` frontmatter, `subagent_type="…"`,
-  `skills:` lists, `/slash` tokens) — handled deterministically by
+  `skills:` lists, `/slash` tokens) — handled deterministically by this skill's bundled
   `scripts/rename_claude_artifact.py`. Never hand-edit these; let the script do them so the
   wiring is never left half-renamed.
 - **Prose mentions** (headings, "the **old** agent", doc descriptions) — ambiguous and
@@ -26,11 +26,12 @@ If any part is missing or ambiguous, ask the user before proceeding.
 
 > **Always invoke with absolute paths.** The shell's working directory is not guaranteed to be
 > the repo root between turns, so resolve the root first and use it for both the script path and
-> `--claude-dir`. Use `python3` (this machine has no bare `python` on PATH). Run this once and
-> reuse `$ROOT` in every command below:
+> `--claude-dir`. The script is bundled inside this skill's own `scripts/` dir. Use `python3`
+> (this machine has no bare `python` on PATH). Run this once and reuse `$ROOT`/`$RENAME` in every
+> command below:
 > ```bash
 > ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-> RENAME="$ROOT/scripts/rename_claude_artifact.py"
+> RENAME="$ROOT/.claude/skills/rename-claude-artifact/scripts/rename_claude_artifact.py"
 > ```
 > If the target `.claude` is not at `$ROOT` (e.g. a nested project), set `--claude-dir` to its
 > actual location instead of `$ROOT/.claude`.

@@ -23,14 +23,20 @@ A caller may pass a **force/refresh** intent, in which case update-in-place with
 - **Visible folders are expanded fully** — recurse to show all of its files and subfolders.
 - **One-line annotation** for every file and folder: what it is *for*, not what it literally contains.
 
-### Ordering (strict)
+### Ordering (strict — enforced by the script, not by hand)
 
 Within **every** directory, list entries in this order:
 1. **Files first, then folders.**
 2. **Within each group, dotted entries cluster first** (alphabetical among themselves), **then the rest**
-   (alphabetical). All comparisons case-insensitive.
+   (alphabetical). All comparisons are **case-insensitive** — case is never a tiebreaker, so `README.md`
+   and `pyproject.toml` interleave purely by letter regardless of capitalization.
 
 So a directory renders as: dotfiles → other files → dot-folders → other folders.
+
+`scripts/build_filesystem_overview.py` produces this ordering (and the box-art, exclusions, and
+"hidden folders are leaves" rule) deterministically — **do not** assemble or re-sort the tree by hand.
+A bare `sort`/`ls` is locale-dependent and will inconsistently put capitalized names before lowercase
+ones; the script sorts on `name.lower()` so the output is identical every run.
 
 ### Exclusions (customizable — default: leave out NOTHING)
 
@@ -51,32 +57,42 @@ If no flag is given, exclude nothing.
 
 ## Procedure
 
-1. Resolve the target repo (argument path, else current working directory) and the exclusion setting
-   (none by default; `--prune` → the preset list; `--exclude a,b` → that list).
+The split: a **script** owns the deterministic mechanics (walk, exclusions, ordering, box-art, the
+date/summary scaffold, the blank `— ` annotation slots); **you** own the judgment (reconciliation,
+the per-entry annotations, the summary paragraph).
+
+1. Resolve the target repo (argument path, else current working directory) and the exclusion flags
+   (none by default; `--prune`; `--exclude a,b`; `--exclude-files`).
 2. **Reconcile first — you own this file.** If `<repo>/FILESYSTEM-OVERVIEW.md` exists, don't blindly
-   overwrite: read it, detect staleness (new/removed folders vs the map; header date), preserve any
-   hand-written notes. If force/refresh → update-in-place silently; else report and ask
-   (update-in-place (default) / overwrite / skip). If it doesn't exist, generate fresh.
-3. List **all** root entries including hidden ones, then drop any that match the exclusion list:
+   overwrite: read it, then run the script with `--stdout` to generate the fresh skeleton, diff the
+   two to detect staleness (new/removed entries; header date), and **preserve any hand-written notes**
+   by carrying their annotations over onto the new skeleton. If force/refresh → update-in-place
+   silently; else report and ask (update-in-place (default) / overwrite / skip). If it doesn't exist,
+   skip to step 3 for a fresh generate.
+3. **Generate the skeleton with the script** (writes `<repo>/FILESYSTEM-OVERVIEW.md` with blank `— `
+   slots; use `python3`, this machine has no bare `python`). Pass the resolved exclusion flags:
    ```bash
-   ls -A1p <repo> | sort        # -A includes dotfiles (not . / ..); -p marks dirs with a trailing /
+   SKILL_DIR="<this skill's dir>"   # resolve the absolute path first
+   python3 "$SKILL_DIR/scripts/build_filesystem_overview.py" <repo>            # default: exclude nothing
+   python3 "$SKILL_DIR/scripts/build_filesystem_overview.py" <repo> --prune    # noise preset
+   python3 "$SKILL_DIR/scripts/build_filesystem_overview.py" <repo> --exclude __pycache__,node_modules
+   python3 "$SKILL_DIR/scripts/build_filesystem_overview.py" <repo> --exclude-files
+   # add --stdout to print instead of writing (used for the reconcile diff in step 2)
    ```
-4. Build the recursable skeleton — always prune hidden folders; additionally prune excluded names:
-   ```bash
-   # Default (exclude nothing): only hidden folders are pruned
-   find <repo> -mindepth 1 \( -path '*/.*' \) -prune -o -type d -print | sort
+   The script already lists all hidden root entries, keeps hidden folders as leaves, applies the
+   exclusions, and emits the strict case-insensitive ordering — so the structure is fixed; you only
+   fill in text.
+4. **Fill in the annotations** in the generated file (`Edit` each `— ` slot). Cheap signals first:
+   name, any `README`/`__init__` docstring, the names of files inside (`Glob`), a single representative
+   file read only if still unclear. Per-folder granularity — don't read everything; one line per entry,
+   describing what it's *for*. For hidden folders a one-line "what it's for" is enough.
+5. **Fill in the summary** — replace the `<FILL IN: …>` slot with a one-paragraph "what this project
+   is", drawn from `README`/`CLAUDE.md` if present.
 
-   # With exclusions, add each name to the prune group, e.g. for --prune:
-   find <repo> -mindepth 1 \( -path '*/.*' \
-        -o -name __pycache__ -o -name node_modules -o -name dist -o -name build -o -name '*.egg-info' \
-        -o -name .pytest_cache -o -name .mypy_cache -o -name .ruff_cache \) -prune -o -type d -print | sort
-   ```
-5. Annotate each entry. Cheap signals first: name, any `README`/`__init__` docstring, the names of
-   files inside (`Glob`), a single representative file read only if still unclear. Per-folder
-   granularity — don't read everything. For hidden folders a one-line "what it's for" is enough.
-6. Draft a one-paragraph "what this project is" from `README`/`CLAUDE.md` if present.
+## Output — `FILESYSTEM-OVERVIEW.md` at the repo root
 
-## Output — write `FILESYSTEM-OVERVIEW.md` at the repo root
+The script emits exactly this shape (date filled, structure ordered, every entry ending in a blank
+`— ` slot, plus a `<FILL IN: …>` summary slot). You fill the slots in place — do not retype the tree.
 
 `````markdown
 # Filesystem Overview
